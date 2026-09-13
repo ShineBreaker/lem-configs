@@ -1,0 +1,12 @@
+# Lem 运行时产物：生成于配置目录侧，不入版本控制
+# （与 Guix-configs 侧 dotfiles/mutable/lem/.stow-local-ignore 保持同一集合）
+/logs
+/history
+/quicklisp
+/config.lisp
+*.fasl
+
+# Agent 工作产物（scratch）；.agents/tools/ 下的测试工具需要入库，故只忽略 workfile
+/.agents/workfile/
+
+__pycache__/
