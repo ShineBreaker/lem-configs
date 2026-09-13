@@ -9,4 +9,7 @@
 # Agent 工作产物（scratch）；.agents/tools/ 下的测试工具需要入库，故只忽略 workfile
 /.agents/workfile/
 
+# blue (Guix Home) 缓存：父仓库 .gitignore 原本覆盖该路径，拆为独立仓库后需自带规则
+/.blue-store/
+
 __pycache__/
