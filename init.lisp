@@ -1,6 +1,6 @@
 ;;; init.lisp — Lem 配置引导：VSCode Dark Modern 一比一复刻
 ;;;
-;;; 部署：dotfiles/mutable/lem/ 经 GNU Stow 直链 ~/.config/lem/（改源即生效）
+;;; 部署：本仓库即 Lem 配置源，经 GNU Stow 直链到 ~/.config/lem/（改源即生效）
 ;;; 结构：参照 oh-my-lem（github.com/xenodesire/oh-my-lem）的模块化拆分——
 ;;;   本文件只做引导；modules/ 目录下全部 .lisp 与 modules/modes/ 下
 ;;;   各语言文件按文件名字典序自动遍历加载（新增模块建文件即可，

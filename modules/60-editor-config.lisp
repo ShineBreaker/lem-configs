@@ -371,7 +371,7 @@ point）；坐标不可得（合成事件 / window 为 nil）时回退当前光�
 ;; .gitignore，非 git 目录也能用。
 ;; --hidden 必须加：rg 默认跳过以 . 开头的隐藏目录/文件，而 Guix/Nix 与
 ;; 大量工具链的配置都在 .config/ 下——不加则在这些目录里搜索恒为空
-;; （本仓库 dotfiles/mutable/lem/.config/ 即是一例，2026-09-11 实测）。
+;; （Lem 配置自身位于 ~/.config/lem/ 即是一例，2026-09-11 实测）。
 ;; VSCode 搜索默认包含隐藏文件（仅 files.exclude 掉 **/.git），此改动与之一致。
 (vs-setglobal :lem/grep "*GREP-COMMAND*" "rg")
 (vs-setglobal :lem/grep "*GREP-ARGS*" "--vimgrep --hidden")
