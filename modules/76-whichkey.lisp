@@ -46,7 +46,10 @@
 ;;; 填充 vs-wk-bg），整行补满 display-width。贴底锚点取 max(display-height,
 ;;; 平铺窗口区底行+1)：多 client 尺寸不一致时 display-height 会被改小、
 ;;; 窗口树仍按大尺寸布局，仅用 display-height 会让面板悬空露出下方 modeline
-;;; （vs-wk-anchor-height）。
+;;; （vs-wk-anchor-height）。webview 前端只给带 border 的浮窗包 z-200
+;;; wrapper，无边框浮窗 canvas 裸挂 z-0 会被 modeline（z-100）盖住；建窗后
+;;; 首个 redraw 冲刷 make-view 完毕，再经 js-eval 把 canvas 抬到 z-300
+;;; （*vs-wk-zfix*）。
 ;;;
 ;;; ── 依赖 ────────────────────────────────────────────────────────────
 ;;;
@@ -99,6 +102,11 @@ load 期以 *vs-theme-mode*（缺省 :dark）调用；主题切换时由 30-them
 (defvar *vs-wk-desc-cache* (make-hash-table :test 'eq)
   "命令符号 → 中文描述；registry 长度变化时整体重建。")
 (defvar *vs-wk-cache-len* -1 "desc-cache 构建时的 registry 条数。")
+
+(defvar *vs-wk-zfix* nil
+  "非 nil = 浮窗新建后待抬 z-index。webview 前端无边框浮窗 canvas 无
+z-index（z-0），modeline surface 为 z-100 会画在面板之上；须在
+redraw-display 冲刷 make-view 之后用 js-eval 抬层（见 vs-wk-show）。")
 
 ;; --- 动态解析辅助 ---
 (defun vs-wk-callable (pkg name)
@@ -405,12 +413,14 @@ Emacs which-key 布局：itemw = maxkey+2+maxdesc+1，ncols 由 display-width
             (funcall (vs-wk-callable :lem-core "WINDOW-SET-SIZE")
                      w width height))
           w)
-        (setf *vs-wk-window*
-              (funcall (vs-wk-callable :lem "MAKE-FLOATING-WINDOW")
-                       :buffer *vs-wk-buffer* :x 0
-                       :y (- (vs-wk-anchor-height) height)
-                       :width width :height height
-                       :use-modeline-p nil)))))
+        (progn
+          (setf *vs-wk-window*
+                (funcall (vs-wk-callable :lem "MAKE-FLOATING-WINDOW")
+                         :buffer *vs-wk-buffer* :x 0
+                         :y (- (vs-wk-anchor-height) height)
+                         :width width :height height
+                         :use-modeline-p nil))
+          (setf *vs-wk-zfix* t)))))
 
 ;; --- 显示 / 隐藏 ---
 (defun vs-wk-hide ()
@@ -435,7 +445,15 @@ Emacs which-key 布局：itemw = maxkey+2+maxdesc+1，ncols 由 display-width
               (when (and height width (>= width 3) (>= height 2))
                 (vs-wk-ensure-window height width)
                 (ignore-errors
-                  (funcall (vs-wk-callable :lem "REDRAW-DISPLAY")))))))
+                  (funcall (vs-wk-callable :lem "REDRAW-DISPLAY")))
+                ;; redraw 已把 make-view 经 bulk 送达前端，此刻 js-eval 能
+                ;; 命中 view；evalIn 是顶层 eval，this = CanvasSurface。
+                (when (and *vs-wk-zfix* *vs-wk-window*)
+                  (setf *vs-wk-zfix* nil)
+                  (ignore-errors
+                    (funcall (vs-wk-callable :lem "JS-EVAL")
+                             *vs-wk-window*
+                             "this.mainDOM.style.zIndex='300'")))))))
     (error (e) (vs-trace "76-whichkey: show 失败: ~A" e))))
 
 ;; --- 挂点 ---
